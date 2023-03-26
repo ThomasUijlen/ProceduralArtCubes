@@ -109,6 +109,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 stream = ExtResource( 1 )
 autoplay = true
+paused = true
 buffering_msec = 1000
 
 [node name="ViewportColor" type="Viewport" parent="."]
@@ -120,7 +121,6 @@ __meta__ = {
 }
 
 [node name="ViewportContainer" type="TextureRect" parent="ViewportColor"]
-modulate = Color( 1, 1, 1, 0.196078 )
 margin_right = 40.0
 margin_bottom = 40.0
 texture = SubResource( 10 )
@@ -296,9 +296,9 @@ text = "Reset"
 
 [node name="Label" type="Label" parent="."]
 margin_left = 879.0
-margin_top = 1021.0
+margin_top = 1044.57
 margin_right = 1066.0
-margin_bottom = 1035.0
+margin_bottom = 1058.57
 text = "Press SPACE to show settings"
 
 [connection signal="finished" from="Viewport/VideoPlayer" to="." method="_on_VideoPlayer_finished"]
