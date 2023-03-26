@@ -59,6 +59,6 @@ func _input(event):
 
 func _on_OptionButton_pressed():
 	if $"%Ghost".pressed:
-		$ViewportColor/ViewportContainer.modulate.a = 3.0/255.0
+		$ViewportColor/ViewportContainer.modulate.a = 50.0/255.0
 	else:
 		$ViewportColor/ViewportContainer.modulate.a = 1.0
