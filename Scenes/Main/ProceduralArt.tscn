@@ -1,0 +1,248 @@
+[gd_scene load_steps=12 format=2]
+
+[ext_resource path="res://Assets/Videos/BadApple.ogv" type="VideoStream" id=1]
+[ext_resource path="res://Scenes/Main/ProceduralArt.gd" type="Script" id=2]
+
+[sub_resource type="QuadMesh" id=1]
+
+[sub_resource type="ViewportTexture" id=2]
+viewport_path = NodePath("Viewport")
+
+[sub_resource type="SpatialMaterial" id=3]
+resource_local_to_scene = true
+flags_unshaded = true
+albedo_texture = SubResource( 2 )
+
+[sub_resource type="Shader" id=5]
+code = "// NOTE: Shader automatically converted from Godot Engine 3.5.1.stable.mono's SpatialMaterial.
+
+shader_type spatial;
+render_mode async_visible,blend_mix,depth_draw_opaque,cull_back,diffuse_burley,specular_schlick_ggx;
+uniform sampler2D videoTexture : hint_albedo;
+
+uniform int depthSampleCount = 5;
+uniform float depthSampleSize = 0.05;
+uniform float depth = 1.0;
+uniform float realWorldScale = 1.0;
+
+varying vec3 color;
+void vertex() {
+	vec2 pos = INSTANCE_CUSTOM.rg;
+	color = texture(videoTexture, pos).rgb;
+	
+	vec3 averageColor = vec3(0,0,0);
+	float sampleCount = 0.0;
+	for(int x = -depthSampleCount/2; x < depthSampleCount; x++) {
+		for(int y = -depthSampleCount/2; y < depthSampleCount; y++) {
+			averageColor += texture(videoTexture, vec2(float(x)*depthSampleSize, float(y)*depthSampleSize)+pos).rgb;
+			sampleCount += 1.0;
+		}
+	}
+	
+	averageColor = averageColor/sampleCount;
+	
+	VERTEX.z -= ((1.0-length(averageColor))*depth)/realWorldScale*0.1;
+	VERTEX.z -= depth*0.05/realWorldScale;
+}
+
+void fragment() {
+	ALBEDO = color;
+}
+"
+
+[sub_resource type="ViewportTexture" id=7]
+viewport_path = NodePath("Viewport")
+
+[sub_resource type="ShaderMaterial" id=6]
+resource_local_to_scene = true
+shader = SubResource( 5 )
+shader_param/depthSampleCount = 10
+shader_param/depthSampleSize = 0.01
+shader_param/depth = 10.0
+shader_param/realWorldScale = 1.0
+shader_param/videoTexture = SubResource( 7 )
+
+[sub_resource type="MultiMesh" id=4]
+transform_format = 1
+custom_data_format = 2
+
+[sub_resource type="Environment" id=8]
+background_mode = 1
+ambient_light_color = Color( 1, 1, 1, 1 )
+ambient_light_energy = 0.2
+ambient_light_sky_contribution = 0.0
+glow_enabled = true
+glow_blend_mode = 1
+
+[sub_resource type="StyleBoxFlat" id=9]
+content_margin_left = 20.0
+content_margin_right = 20.0
+content_margin_top = 20.0
+content_margin_bottom = 20.0
+bg_color = Color( 1, 1, 1, 0.196078 )
+
+[node name="ProceduralArt" type="Spatial"]
+script = ExtResource( 2 )
+
+[node name="Viewport" type="Viewport" parent="."]
+size = Vector2( 960, 540 )
+render_target_v_flip = true
+
+[node name="VideoPlayer" type="VideoPlayer" parent="Viewport"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+stream = ExtResource( 1 )
+autoplay = true
+buffering_msec = 1000
+
+[node name="MeshInstance" type="MeshInstance" parent="."]
+transform = Transform( 15, 0, 0, 0, 15, 0, 0, 0, 15, 0, 0, -13.6534 )
+visible = false
+mesh = SubResource( 1 )
+material/0 = SubResource( 3 )
+
+[node name="Camera" type="Camera" parent="."]
+transform = Transform( 1, 0, 0, 0, 0.982584, 0.185821, 0, -0.185821, 0.982584, 0, 2.43316, 0.592824 )
+
+[node name="Cubes" type="MultiMeshInstance" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.161, -9.998 )
+material_override = SubResource( 6 )
+multimesh = SubResource( 4 )
+
+[node name="DirectionalLight" type="DirectionalLight" parent="."]
+transform = Transform( 1, 0, 0, 0, 0.810185, 0.586174, 0, -0.586174, 0.810185, 0, 3.43528, 4.5402 )
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource( 8 )
+
+[node name="Settings" type="Control" parent="."]
+visible = false
+margin_right = 40.0
+margin_bottom = 40.0
+
+[node name="PanelContainer" type="PanelContainer" parent="Settings"]
+margin_left = 44.0
+margin_top = 345.0
+margin_right = 344.0
+margin_bottom = 681.0
+custom_styles/panel = SubResource( 9 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Settings/PanelContainer"]
+margin_left = 20.0
+margin_top = 20.0
+margin_right = 280.0
+margin_bottom = 316.0
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="Settings/PanelContainer/VBoxContainer"]
+margin_right = 260.0
+margin_bottom = 88.0
+size_flags_vertical = 0
+
+[node name="Label" type="Label" parent="Settings/PanelContainer/VBoxContainer/VBoxContainer2"]
+margin_right = 260.0
+margin_bottom = 14.0
+text = "Cube Count"
+
+[node name="Cubes" type="HSlider" parent="Settings/PanelContainer/VBoxContainer/VBoxContainer2"]
+unique_name_in_owner = true
+margin_top = 18.0
+margin_right = 260.0
+margin_bottom = 34.0
+min_value = 3.0
+value = 50.0
+rounded = true
+
+[node name="Control" type="Control" parent="Settings/PanelContainer/VBoxContainer/VBoxContainer2"]
+margin_top = 38.0
+margin_right = 260.0
+margin_bottom = 88.0
+rect_min_size = Vector2( 0, 50 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Settings/PanelContainer/VBoxContainer"]
+margin_top = 92.0
+margin_right = 260.0
+margin_bottom = 180.0
+size_flags_vertical = 0
+
+[node name="Label" type="Label" parent="Settings/PanelContainer/VBoxContainer/VBoxContainer"]
+margin_right = 260.0
+margin_bottom = 14.0
+text = "Depth Intensity"
+
+[node name="Depth" type="HSlider" parent="Settings/PanelContainer/VBoxContainer/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 18.0
+margin_right = 260.0
+margin_bottom = 34.0
+value = 10.0
+rounded = true
+
+[node name="Control" type="Control" parent="Settings/PanelContainer/VBoxContainer/VBoxContainer"]
+margin_top = 38.0
+margin_right = 260.0
+margin_bottom = 88.0
+rect_min_size = Vector2( 0, 50 )
+
+[node name="VBoxContainer3" type="VBoxContainer" parent="Settings/PanelContainer/VBoxContainer"]
+margin_top = 184.0
+margin_right = 260.0
+margin_bottom = 272.0
+size_flags_vertical = 0
+
+[node name="Label" type="Label" parent="Settings/PanelContainer/VBoxContainer/VBoxContainer3"]
+margin_right = 260.0
+margin_bottom = 14.0
+text = "Depth Sample Count"
+
+[node name="DepthSampleCount" type="HSlider" parent="Settings/PanelContainer/VBoxContainer/VBoxContainer3"]
+unique_name_in_owner = true
+margin_top = 18.0
+margin_right = 260.0
+margin_bottom = 34.0
+min_value = 1.0
+max_value = 20.0
+value = 5.0
+rounded = true
+
+[node name="Control" type="Control" parent="Settings/PanelContainer/VBoxContainer/VBoxContainer3"]
+margin_top = 38.0
+margin_right = 260.0
+margin_bottom = 88.0
+rect_min_size = Vector2( 0, 50 )
+
+[node name="VBoxContainer4" type="VBoxContainer" parent="Settings/PanelContainer/VBoxContainer"]
+visible = false
+margin_top = 276.0
+margin_right = 260.0
+margin_bottom = 364.0
+size_flags_vertical = 0
+
+[node name="Label" type="Label" parent="Settings/PanelContainer/VBoxContainer/VBoxContainer4"]
+margin_right = 260.0
+margin_bottom = 14.0
+text = "Depth Sample Radius"
+
+[node name="DepthSampleRadius" type="HSlider" parent="Settings/PanelContainer/VBoxContainer/VBoxContainer4"]
+unique_name_in_owner = true
+margin_top = 18.0
+margin_right = 260.0
+margin_bottom = 34.0
+max_value = 0.2
+step = 0.01
+value = 0.01
+
+[node name="Control" type="Control" parent="Settings/PanelContainer/VBoxContainer/VBoxContainer4"]
+margin_top = 38.0
+margin_right = 260.0
+margin_bottom = 88.0
+rect_min_size = Vector2( 0, 50 )
+
+[node name="Reset" type="Button" parent="Settings/PanelContainer/VBoxContainer"]
+margin_top = 276.0
+margin_right = 260.0
+margin_bottom = 296.0
+text = "Reset"
+
+[connection signal="finished" from="Viewport/VideoPlayer" to="." method="_on_VideoPlayer_finished"]
+[connection signal="pressed" from="Settings/PanelContainer/VBoxContainer/Reset" to="." method="_on_Reset_pressed"]
